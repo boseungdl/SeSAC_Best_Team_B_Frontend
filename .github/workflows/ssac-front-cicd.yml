@@ -1,18 +1,16 @@
-#frontend repositoy1 
-name: ssac-front 
+name: ssac-front #
 
-# bracnch main push 감지 시 실행
-on:  
-  push:
-    branches: [ main ]
+on:
+  pull_request_target:
+    branches:
+      - main
 
 jobs:
   cicd:   
     # ubuntu에서 실행
     name: Build Image
     runs-on: ubuntu-latest 
-
-   
+    
     steps:
     #checkout action 사용
     - name: Check out code
@@ -39,16 +37,15 @@ jobs:
       with:
         github_token: ${{ secrets.TOKEN }}
         
-   #DB .env secret add  
-    - name: Generate Environment Variables File 
-      run: |
-        echo "REACT_APP_GOOGLE_MAP_API_KEY=$REACT_APP_GOOGLE_MAP_API_KEY" >> .env
-        echo "REACT_APP_S3_URL=$REACT_APP_S3_URL" >> .env
-        echo "REACT_APP_BACKEND=$REACT_APP_BACKEND" >> .env
-      env:
-        REACT_APP_GOOGLE_MAP_API_KEY: ${{ secrets.REACT_APP_GOOGLE_MAP_API_KEY }}
-        REACT_APP_S3_URL: ${{ secrets.REACT_APP_S3_URL }}
-        REACT_APP_BACKEND: ${{ secrets.REACT_APP_BACKEND }}
+   #DB .env secret add  TEST
+#    - name: Generate Environment Variables File 
+#      run: |
+#        echo "REACT_APP_GOOGLE_MAP_API_KEY=${{ secrets.REACT_APP_GOOGLE_MAP_API_KEY }}" >> .env
+#        echo "REACT_APP_S3_URL=${{ secrets.REACT_APP_S3_URL }}" >> .env
+#        echo "REACT_APP_BACKEND=${{ secrets.REACT_APP_BACKEND }}" >> .env
+#        echo "ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}" >> .env
+#        echo "ECR_REPOSITORY=ssac-front" >> .env
+#        echo "IMAGE_TAG=${{ steps.tag_version.outputs.new_tag }}" >> .env
 
    # 이미지 빌드 후 ecr push
    # env 값으로 ECR의 registry, repository, Imagetag 추가
@@ -59,6 +56,10 @@ jobs:
         ECR_REPOSITORY: ssac-front 
         IMAGE_TAG: ${{ steps.tag_version.outputs.new_tag }}
       run: | 
+        echo "REACT_APP_GOOGLE_MAP_API_KEY=${{ secrets.REACT_APP_GOOGLE_MAP_API_KEY }}" >> .env
+        echo "REACT_APP_S3_URL=${{ secrets.REACT_APP_S3_URL }}" >> .env
+        echo "REACT_APP_BACKEND=${{ secrets.REACT_APP_BACKEND }}" >> .env
+        cat .env
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
